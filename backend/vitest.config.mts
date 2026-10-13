@@ -20,7 +20,7 @@ export default defineConfig({
     }),
   ],
   test: {
-    environment: 'node',
-    include: ['src/**/*.spec.ts', 'test/**/*.vitest.ts'],
+  environment: 'node',
+  include: ['src/**/*.spec.ts', 'test/**/*.vitest.ts'],
   },
 });
