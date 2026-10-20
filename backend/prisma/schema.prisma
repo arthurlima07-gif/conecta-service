@@ -7,3 +7,58 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum StatusConta {
+  ATIVA
+  INATIVA
+}
+
+// Proposta técnica: a documentação não enumera os estados do vínculo.
+enum StatusPerfil {
+  ATIVO
+  INATIVO
+}
+
+enum PapelUsuario {
+  CONTRATANTE
+  PRESTADOR
+  ADMINISTRADOR
+}
+
+model Usuario {
+  idUsuario    Int         @id @default(autoincrement())
+  nome         String      @db.VarChar(150)
+  email        String      @unique @db.VarChar(150)
+  senhaHash    String      @db.VarChar(255)
+  telefone     String?     @db.VarChar(20)
+  cpf          String?     @db.VarChar(14)
+  fotoPerfil   String?     @db.Text
+  cidade       String?     @db.VarChar(100)
+  estado       String?     @db.VarChar(50)
+  dataCadastro DateTime    @default(now()) @db.Timestamptz(3)
+  statusConta  StatusConta
+
+  perfis PerfilUsuario[]
+}
+
+model TipoUsuario {
+  idTipoUsuario Int          @id @default(autoincrement())
+  nomeTipo      PapelUsuario @unique
+  descricao     String?      @db.Text
+
+  perfis PerfilUsuario[]
+}
+
+model PerfilUsuario {
+  idPerfilUsuario Int          @id @default(autoincrement())
+  dataVinculo     DateTime     @default(now()) @db.Timestamptz(3)
+  status          StatusPerfil
+  idUsuario       Int
+  idTipoUsuario   Int
+
+  usuario     Usuario     @relation(fields: [idUsuario], references: [idUsuario], onDelete: Restrict, onUpdate: Cascade)
+  tipoUsuario TipoUsuario @relation(fields: [idTipoUsuario], references: [idTipoUsuario], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([idUsuario, idTipoUsuario])
+  @@index([idTipoUsuario])
+}
