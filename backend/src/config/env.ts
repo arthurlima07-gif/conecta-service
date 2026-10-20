@@ -1,5 +1,25 @@
 import { z } from 'zod';
 
+const databaseUrlSchema = z.string().min(1).refine(
+  (value) => {
+    try {
+      const url = new URL(value);
+
+      return (
+        ['postgresql:', 'postgres:'].includes(url.protocol) &&
+        url.hostname.length > 0 &&
+        url.username.length > 0 &&
+        url.pathname.length > 1
+      );
+    } catch {
+      return false;
+    }
+  },
+  {
+    message: 'Informe uma URL válida de conexão PostgreSQL.',
+  },
+);
+
 const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
@@ -11,6 +31,8 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+
+  DATABASE_URL: databaseUrlSchema,
 });
 
 export function validateEnv(input: Record<string, unknown>) {

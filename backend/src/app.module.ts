@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { HealthModule } from './modules/health/health.module';
 import { validateEnv } from './config/env';
+import { PrismaModule } from './database/prisma.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { validateEnv } from './config/env';
       validate: validateEnv,
       skipProcessEnv: true,
     }),
+    PrismaModule,
     HealthModule,
   ],
   controllers: [AppController],

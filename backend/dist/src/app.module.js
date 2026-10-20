@@ -11,8 +11,9 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const health_module_1 = require("./modules/health/health.module");
 const env_1 = require("./config/env");
+const prisma_module_1 = require("./database/prisma.module");
+const health_module_1 = require("./modules/health/health.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -25,6 +26,7 @@ exports.AppModule = AppModule = __decorate([
                 validate: env_1.validateEnv,
                 skipProcessEnv: true,
             }),
+            prisma_module_1.PrismaModule,
             health_module_1.HealthModule,
         ],
         controllers: [app_controller_1.AppController],

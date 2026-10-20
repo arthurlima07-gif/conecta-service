@@ -2,6 +2,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateEnv = validateEnv;
 const zod_1 = require("zod");
+const databaseUrlSchema = zod_1.z.string().min(1).refine((value) => {
+    try {
+        const url = new URL(value);
+        return (['postgresql:', 'postgres:'].includes(url.protocol) &&
+            url.hostname.length > 0 &&
+            url.username.length > 0 &&
+            url.pathname.length > 1);
+    }
+    catch {
+        return false;
+    }
+}, {
+    message: 'Informe uma URL válida de conexão PostgreSQL.',
+});
 const envSchema = zod_1.z.object({
     NODE_ENV: zod_1.z
         .enum(['development', 'test', 'production'])
@@ -11,6 +25,7 @@ const envSchema = zod_1.z.object({
         .enum(['true', 'false'])
         .default('false')
         .transform((value) => value === 'true'),
+    DATABASE_URL: databaseUrlSchema,
 });
 function validateEnv(input) {
     const result = envSchema.safeParse(input);
