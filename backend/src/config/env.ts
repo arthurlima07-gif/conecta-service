@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { corsOriginsSchema } from './cors';
 
 const databaseUrlSchema = z.string().min(1).refine(
   (value) => {
@@ -33,6 +34,7 @@ const envSchema = z.object({
     .transform((value) => value === 'true'),
 
   DATABASE_URL: databaseUrlSchema,
+  CORS_ORIGINS: corsOriginsSchema,
 });
 
 export function validateEnv(input: Record<string, unknown>) {

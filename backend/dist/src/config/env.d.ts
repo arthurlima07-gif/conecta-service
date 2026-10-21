@@ -3,4 +3,5 @@ export declare function validateEnv(input: Record<string, unknown>): {
     PORT: number;
     SWAGGER_ENABLED: boolean;
     DATABASE_URL: string;
+    CORS_ORIGINS: string[];
 };

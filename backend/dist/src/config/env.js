@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateEnv = validateEnv;
 const zod_1 = require("zod");
+const cors_1 = require("./cors");
 const databaseUrlSchema = zod_1.z.string().min(1).refine((value) => {
     try {
         const url = new URL(value);
@@ -26,6 +27,7 @@ const envSchema = zod_1.z.object({
         .default('false')
         .transform((value) => value === 'true'),
     DATABASE_URL: databaseUrlSchema,
+    CORS_ORIGINS: cors_1.corsOriginsSchema,
 });
 function validateEnv(input) {
     const result = envSchema.safeParse(input);

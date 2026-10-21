@@ -27,6 +27,7 @@ describe('Validação das variáveis de ambiente', () => {
       PORT: 3000,
       SWAGGER_ENABLED: false,
       DATABASE_URL: databaseUrl,
+      CORS_ORIGINS: [],
     });
   });
 
