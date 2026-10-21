@@ -25,29 +25,50 @@ let HealthController = class HealthController {
 exports.HealthController = HealthController;
 __decorate([
     (0, common_1.Get)(),
+    (0, common_1.Header)('Cache-Control', 'no-store'),
     (0, swagger_1.ApiOperation)({
-        summary: 'Verifica se a API está respondendo',
-        description: 'Endpoint público, sem parâmetros ou corpo de requisição. ' +
-            'Nesta etapa, verifica apenas a resposta da API, sem consultar o banco.',
+        summary: 'Verifica a disponibilidade da API e do PostgreSQL',
+        description: 'Endpoint público, sem autenticação, parâmetros ou body. ' +
+            'Executa SELECT 1 no banco. Retorna 200 quando a consulta ' +
+            'funciona e 503 quando ocorre uma falha.',
     }),
     (0, swagger_1.ApiOkResponse)({
-        description: 'A API está respondendo.',
+        description: 'API e PostgreSQL disponíveis.',
         schema: {
             type: 'object',
-            required: ['status', 'service'],
+            required: ['status', 'service', 'database'],
             properties: {
-                status: {
-                    type: 'string',
-                    enum: ['ok'],
-                },
+                status: { type: 'string', enum: ['ok'] },
                 service: {
                     type: 'string',
                     enum: ['conecta-service-api'],
                 },
+                database: { type: 'string', enum: ['up'] },
             },
             example: {
                 status: 'ok',
                 service: 'conecta-service-api',
+                database: 'up',
+            },
+        },
+    }),
+    (0, swagger_1.ApiServiceUnavailableResponse)({
+        description: 'Não foi possível consultar o PostgreSQL.',
+        schema: {
+            type: 'object',
+            required: ['status', 'service', 'database'],
+            properties: {
+                status: { type: 'string', enum: ['error'] },
+                service: {
+                    type: 'string',
+                    enum: ['conecta-service-api'],
+                },
+                database: { type: 'string', enum: ['down'] },
+            },
+            example: {
+                status: 'error',
+                service: 'conecta-service-api',
+                database: 'down',
             },
         },
     }),

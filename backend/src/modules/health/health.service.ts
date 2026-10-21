@@ -1,11 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class HealthService {
-  check() {
-    return {
-      status: 'ok',
-      service: 'conecta-service-api',
-    };
+  constructor(private readonly prisma: PrismaService) {}
+
+  async check() {
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+
+      return {
+        status: 'ok',
+        service: 'conecta-service-api',
+        database: 'up',
+      };
+    } catch {
+      throw new ServiceUnavailableException({
+        status: 'error',
+        service: 'conecta-service-api',
+        database: 'down',
+      });
+    }
   }
 }
