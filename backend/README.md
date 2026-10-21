@@ -30,7 +30,9 @@ Implementado e validado:
 - Health check com consulta ao PostgreSQL.
 - Swagger.
 - CORS com lista de origens permitidas.
-- 38 testes automatizados passando no fechamento desta etapa.
+- Filtro global de exceções HTTP.
+- Respostas genéricas para falhas inesperadas, sem exposição de detalhes internos.
+- 42 testes automatizados passando no fechamento desta etapa.
 
 Ainda não implementado:
 
