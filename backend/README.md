@@ -1,98 +1,467 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Conecta Service — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API da plataforma de prestação e contratação de serviços Conecta Service.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+O backend está em desenvolvimento incremental. A documentação oficial do
+projeto é a referência para requisitos e regras de negócio.
 
-## Description
+## Tecnologias
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Node.js e TypeScript
+- NestJS 11
+- Prisma ORM 7.10.1
+- PostgreSQL 17
+- Zod
+- Swagger/OpenAPI
+- Vitest
+- Docker Compose
 
-## Project setup
+JWT e Argon2 estão previstos para a etapa de autenticação.
+
+## Estado atual
+
+Implementado e validado:
+
+- Estrutura inicial NestJS.
+- Configuração por variáveis de ambiente com validação Zod.
+- PostgreSQL em Docker com volume persistente.
+- Prisma integrado ao NestJS.
+- Primeira migration de usuários e perfis.
+- Health check com consulta ao PostgreSQL.
+- Swagger.
+- CORS com lista de origens permitidas.
+- 38 testes automatizados passando no fechamento desta etapa.
+
+Ainda não implementado:
+
+- Cadastro e login.
+- Hash de senha com Argon2.
+- Autenticação JWT e autorização por perfil.
+- Cadastro inicial dos tipos de usuário.
+- Módulos de serviços, orçamentos, contratos e pagamentos.
+- Demais funcionalidades de negócio.
+
+A existência das tabelas de usuários não significa que o cadastro
+ou a autenticação já estejam disponíveis.
+
+## Pré-requisitos
+
+- Node.js e npm.
+- Docker Engine iniciado.
+- Docker Compose.
+- Git.
+
+Ambiente utilizado na validação desta etapa:
+
+- Arch Linux.
+- Node.js 26.12.0.
+- Prisma 7.10.1.
+- PostgreSQL 17.
+
+As versões efetivas das dependências estão registradas no
+package-lock.json. Utilize npm ci para reproduzir a instalação.
+
+## Instalação
+
+Depois de obter o repositório, entre na pasta backend:
 
 ```bash
-$ npm install
+cd conecta-service/backend
 ```
 
-## Compile and run the project
+Todos os comandos npm, Prisma e Docker Compose deste README devem
+ser executados nessa pasta.
+
+Instale as dependências:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm ci
 ```
 
-## Run tests
+Em uma instalação nova, crie o arquivo de configuração:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
+Se o .env já existir, edite-o preservando suas configurações.
+Não sobrescreva credenciais locais com as do exemplo.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Variáveis de ambiente
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Exemplo de configuração local:
+
+```dotenv
+NODE_ENV=development
+PORT=3000
+SWAGGER_ENABLED=true
+
+POSTGRES_USER=conecta
+POSTGRES_PASSWORD=SUBSTITUA_POR_UMA_SENHA_LOCAL
+POSTGRES_DB=conecta_service
+
+DATABASE_URL="postgresql://conecta:SUBSTITUA_POR_UMA_SENHA_LOCAL@127.0.0.1:5433/conecta_service?schema=public"
+
+CORS_ORIGINS=
+```
+
+| Variável | Finalidade |
+|---|---|
+| NODE_ENV | Ambiente: development, test ou production |
+| PORT | Porta HTTP da API |
+| SWAGGER_ENABLED | Habilita o Swagger com true ou desabilita com false |
+| POSTGRES_USER | Usuário criado na primeira inicialização do banco |
+| POSTGRES_PASSWORD | Senha definida na primeira inicialização do banco |
+| POSTGRES_DB | Banco criado na primeira inicialização |
+| DATABASE_URL | Conexão utilizada pelo Prisma |
+| CORS_ORIGINS | Origens web permitidas, separadas por vírgula |
+
+A senha em DATABASE_URL deve corresponder à senha do PostgreSQL.
+
+Caracteres especiais na senha precisam ser codificados na URL.
+Por exemplo, @ vira %40 e # vira %23. Em POSTGRES_PASSWORD,
+mantenha o valor original.
+
+O arquivo .env contém credenciais e não deve ser versionado.
+O .env.example deve conter somente valores de exemplo.
+
+### CORS
+
+Deixe CORS_ORIGINS vazio enquanto não houver frontend web:
+
+```dotenv
+CORS_ORIGINS=
+```
+
+Exemplo para uma futura interface web local:
+
+```dotenv
+CORS_ORIGINS=http://localhost:8081
+```
+
+Informe somente origens HTTP ou HTTPS, sem caminho ou barra final.
+O caractere * não é aceito.
+
+CORS controla a leitura de respostas por páginas no navegador.
+Ele não substitui autenticação e autorização.
+
+## Iniciar o PostgreSQL
+
+Os exemplos utilizam sudo, conforme o ambiente local configurado.
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+sudo docker compose up -d --wait
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Verifique o estado:
 
-## Resources
+```bash
+sudo docker compose ps
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+O serviço postgres deve aparecer como healthy.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Mapeamento de portas:
 
-## Support
+- Computador: 127.0.0.1:5433.
+- Contêiner: 5432.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Os dados são armazenados no volume postgres_data gerenciado
+pelo Docker Compose.
 
-## Stay in touch
+## Aplicar migrations
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Em uma instalação nova ou após receber migrations já versionadas:
 
-## License
+```bash
+npx prisma migrate deploy
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Gere o cliente:
+
+```bash
+npx prisma generate
+```
+
+Confira o estado:
+
+```bash
+npx prisma migrate status
+```
+
+O resultado esperado é:
+
+```text
+Database schema is up to date!
+```
+
+Não execute os scripts SQL da documentação manualmente sobre esse banco.
+A evolução da estrutura é controlada pelas migrations do projeto.
+
+### Criar uma nova migration durante o desenvolvimento
+
+Depois de alterar prisma/schema.prisma:
+
+```bash
+npx prisma format
+npx prisma validate
+npx prisma migrate dev --name nome_da_alteracao --create-only
+```
+
+Revise o migration.sql gerado. Depois aplique:
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+Versione o schema e a pasta de migrations.
+
+Não edite migrations já aplicadas e compartilhadas. Crie uma nova
+migration para evoluir a estrutura.
+
+Não utilize prisma db push como fluxo principal do projeto.
+
+## Executar a API
+
+Com o PostgreSQL iniciado:
+
+```bash
+npm run start:dev
+```
+
+Mantenha esse terminal aberto.
+
+A API valida a configuração e confirma a conexão com o banco antes
+de aceitar requisições.
+
+Endereços locais padrão:
+
+- API: http://localhost:3000/api
+- Health check: http://localhost:3000/api/health
+- Swagger: http://localhost:3000/docs
+- OpenAPI JSON: http://localhost:3000/docs-json
+
+O Swagger depende de SWAGGER_ENABLED=true.
+
+## Endpoints disponíveis
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | /api | Rota inicial do NestJS, com resposta Hello World! |
+| GET | /api/health | Verifica a resposta do PostgreSQL |
+
+### Health check
+
+Não exige autenticação, parâmetros ou body.
+
+```bash
+curl -i http://localhost:3000/api/health
+```
+
+Banco disponível — HTTP 200:
+
+```json
+{
+  "status": "ok",
+  "service": "conecta-service-api",
+  "database": "up"
+}
+```
+
+Falha na consulta — HTTP 503:
+
+```json
+{
+  "status": "error",
+  "service": "conecta-service-api",
+  "database": "down"
+}
+```
+
+As respostas possuem Cache-Control: no-store e não incluem
+credenciais ou detalhes internos do erro.
+
+A resposta 503 permite identificar falhas depois que a API iniciou.
+Se o banco estiver indisponível durante a inicialização, a API
+encerra sem começar a atender requisições.
+
+## Testes e build
+
+Inicie o banco antes da suíte completa:
+
+```bash
+sudo docker compose up -d --wait
+```
+
+Execute os testes:
+
+```bash
+npm test
+```
+
+Compile:
+
+```bash
+npm run build
+```
+
+Executar somente os testes do health check:
+
+```bash
+npx vitest run --config vitest.config.mts test/health.vitest.ts
+```
+
+A suíte inclui testes que usam o PostgreSQL real. Utilize um ambiente
+local de desenvolvimento, nunca um banco de produção.
+
+Os testes de restrições criam registros em transações desfeitas
+com ROLLBACK. Os contadores de IDs podem avançar mesmo após o rollback.
+
+## Estrutura principal
+
+```text
+backend/
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
+├── src/
+│   ├── config/
+│   ├── database/
+│   ├── generated/
+│   │   └── prisma/
+│   ├── modules/
+│   │   └── health/
+│   ├── app.module.ts
+│   └── main.ts
+├── test/
+├── compose.yaml
+├── prisma.config.ts
+├── vitest.config.mts
+├── .env.example
+└── package.json
+```
+
+O cliente em src/generated/prisma é gerado pelo comando
+prisma generate e não deve ser editado manualmente.
+
+## Banco de dados atual
+
+| Tabela | Responsabilidade |
+|---|---|
+| Usuario | Dados pessoais e de acesso |
+| TipoUsuario | Identificação dos papéis disponíveis |
+| PerfilUsuario | Associação entre usuários e papéis |
+| _prisma_migrations | Histórico técnico das migrations |
+
+Um usuário pode possuir vários papéis diferentes.
+
+Restrições implementadas:
+
+- Email único.
+- Nome do tipo de usuário único.
+- Combinação de usuário e tipo única.
+- Referências obrigatórias em PerfilUsuario.
+- Exclusão restrita de registros referenciados.
+- Nome, email, senhaHash e status da conta obrigatórios.
+
+O campo senhaHash ainda não é preenchido por um fluxo de cadastro.
+A implementação do hash com Argon2 será feita na etapa de autenticação.
+
+Os papéis CONTRATANTE, PRESTADOR e ADMINISTRADOR existem no enum,
+mas ainda não há um seed para inserir os registros em TipoUsuario.
+
+### Decisões técnicas em relação ao SQL original
+
+- senha foi substituído por senhaHash.
+- Datas de cadastro e vínculo utilizam TIMESTAMPTZ.
+- Foram adicionadas restrições de obrigatoriedade e unicidade.
+- Papéis são limitados por enum, mantendo a tabela TipoUsuario.
+- StatusConta possui ATIVA e INATIVA.
+- StatusPerfil possui ATIVO e INATIVO como proposta técnica:
+  a documentação não enumera os estados do vínculo.
+- Telefone, CPF, foto, cidade e estado continuam opcionais.
+- CPF não possui restrição de unicidade nesta etapa.
+- A unicidade atual de email não normaliza maiúsculas e minúsculas.
+
+As regras de transição de status e o fluxo de exclusão de conta
+ainda serão definidos antes da implementação dessas funcionalidades.
+
+## Acesso pelo pgAdmin
+
+Para o pgAdmin instalado diretamente no computador:
+
+| Campo | Valor |
+|---|---|
+| Host | 127.0.0.1 |
+| Porta | 5433 |
+| Maintenance database | conecta_service |
+| Usuário | conecta |
+| Senha | Senha utilizada na primeira inicialização do PostgreSQL |
+
+Se você personalizou o usuário ou o banco no .env, utilize esses valores.
+
+Alterar POSTGRES_PASSWORD no .env não altera a senha de um banco
+já inicializado em um volume existente.
+
+Não crie tabelas manualmente pelo pgAdmin; utilize migrations.
+
+## Parar e reiniciar
+
+Parar a API: Ctrl + C no terminal em que ela está executando.
+
+Parar somente o PostgreSQL:
+
+```bash
+sudo docker compose stop postgres
+```
+
+Iniciar novamente:
+
+```bash
+sudo docker compose up -d --wait
+```
+
+Remover os contêineres preservando o volume:
+
+```bash
+sudo docker compose down
+```
+
+Não acrescente -v se quiser preservar os dados.
+Essa opção remove os volumes do projeto.
+
+## Problemas comuns
+
+### npm informa que não encontrou package.json
+
+Entre na pasta backend antes de executar comandos npm.
+
+### npx solicita instalar outra versão do Prisma
+
+Cancele a instalação e confira se você está dentro de backend
+e se executou npm ci.
+
+### Prisma apresenta P1001
+
+Confira se o PostgreSQL está iniciado e se DATABASE_URL utiliza
+a porta 5433.
+
+### curl não consegue conectar à porta 3000
+
+Confira o terminal da API. O processo pode estar parado ou ter
+falhado na inicialização.
+
+### /docs retorna 404
+
+Confira SWAGGER_ENABLED=true no .env e reinicie a API.
+
+### Falha ao iniciar o contêiner
+
+Consulte:
+
+```bash
+sudo docker compose logs --tail=60 postgres
+```
+
+Não compartilhe o .env nem URLs contendo senhas ao pedir ajuda.
