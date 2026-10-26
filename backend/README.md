@@ -3,6 +3,7 @@
 API da plataforma de prestação e contratação de serviços Conecta Service.
 
 O backend está em desenvolvimento incremental. A documentação oficial do
+
 projeto é a referência para requisitos e regras de negócio.
 
 ## Tecnologias
@@ -39,12 +40,18 @@ Ainda não implementado:
 - Cadastro e login.
 - Hash de senha com Argon2.
 - Autenticação JWT e autorização por perfil.
-- Cadastro inicial dos tipos de usuário.
 - Módulos de serviços, orçamentos, contratos e pagamentos.
 - Demais funcionalidades de negócio.
 
 A existência das tabelas de usuários não significa que o cadastro
+
 ou a autenticação já estejam disponíveis.
+
+## Etapa atual: dados iniciais
+
+O seed de `TipoUsuario` foi definido para inserir CONTRATANTE, PRESTADOR e
+ADMINISTRADOR sem duplicar registros existentes. A execução e a validação
+local desta etapa ainda precisam ser confirmadas.
 
 ## Pré-requisitos
 
@@ -61,6 +68,7 @@ Ambiente utilizado na validação desta etapa:
 - PostgreSQL 17.
 
 As versões efetivas das dependências estão registradas no
+
 package-lock.json. Utilize npm ci para reproduzir a instalação.
 
 ## Instalação
@@ -72,6 +80,7 @@ cd conecta-service/backend
 ```
 
 Todos os comandos npm, Prisma e Docker Compose deste README devem
+
 ser executados nessa pasta.
 
 Instale as dependências:
@@ -87,6 +96,7 @@ cp .env.example .env
 ```
 
 Se o .env já existir, edite-o preservando suas configurações.
+
 Não sobrescreva credenciais locais com as do exemplo.
 
 ## Variáveis de ambiente
@@ -97,13 +107,10 @@ Exemplo de configuração local:
 NODE_ENV=development
 PORT=3000
 SWAGGER_ENABLED=true
-
 POSTGRES_USER=conecta
 POSTGRES_PASSWORD=SUBSTITUA_POR_UMA_SENHA_LOCAL
 POSTGRES_DB=conecta_service
-
 DATABASE_URL="postgresql://conecta:SUBSTITUA_POR_UMA_SENHA_LOCAL@127.0.0.1:5433/conecta_service?schema=public"
-
 CORS_ORIGINS=
 ```
 
@@ -121,10 +128,13 @@ CORS_ORIGINS=
 A senha em DATABASE_URL deve corresponder à senha do PostgreSQL.
 
 Caracteres especiais na senha precisam ser codificados na URL.
+
 Por exemplo, @ vira %40 e # vira %23. Em POSTGRES_PASSWORD,
+
 mantenha o valor original.
 
 O arquivo .env contém credenciais e não deve ser versionado.
+
 O .env.example deve conter somente valores de exemplo.
 
 ### CORS
@@ -142,9 +152,11 @@ CORS_ORIGINS=http://localhost:8081
 ```
 
 Informe somente origens HTTP ou HTTPS, sem caminho ou barra final.
+
 O caractere * não é aceito.
 
 CORS controla a leitura de respostas por páginas no navegador.
+
 Ele não substitui autenticação e autorização.
 
 ## Iniciar o PostgreSQL
@@ -169,6 +181,7 @@ Mapeamento de portas:
 - Contêiner: 5432.
 
 Os dados são armazenados no volume postgres_data gerenciado
+
 pelo Docker Compose.
 
 ## Aplicar migrations
@@ -198,6 +211,7 @@ Database schema is up to date!
 ```
 
 Não execute os scripts SQL da documentação manualmente sobre esse banco.
+
 A evolução da estrutura é controlada pelas migrations do projeto.
 
 ### Criar uma nova migration durante o desenvolvimento
@@ -220,9 +234,55 @@ npx prisma generate
 Versione o schema e a pasta de migrations.
 
 Não edite migrations já aplicadas e compartilhadas. Crie uma nova
+
 migration para evoluir a estrutura.
 
 Não utilize prisma db push como fluxo principal do projeto.
+
+## Dados iniciais: seed de tipos de usuário
+
+Depois de aplicar as migrations e gerar o Prisma Client:
+
+```bash
+npx prisma db seed
+```
+
+O comando utiliza `tsx prisma/seed.ts`, configurado em `migrations.seed`
+no arquivo `prisma.config.ts`. A dependência de desenvolvimento `tsx` deve
+estar registrada em `package.json` e `package-lock.json`.
+
+O script insere os tipos CONTRATANTE, PRESTADOR e ADMINISTRADOR em
+`TipoUsuario`. A unicidade de `nomeTipo` e `skipDuplicates: true` permitem
+repetir a execução sem duplicar registros ou sobrescrever descrições existentes.
+
+O seed não cria contas, não atribui perfis e não concede acesso administrativo.
+Não é necessária uma nova migration para inserir esses dados.
+No Prisma 7, execute o seed explicitamente; a aplicação das migrations
+não o executa automaticamente.
+
+### Validar o seed
+
+Execute novamente:
+
+```bash
+npx prisma db seed
+```
+
+Se os três tipos já existirem, a saída esperada será:
+
+```text
+Seed concluído: 0 tipo(s) de usuário criado(s).
+```
+
+Confira os registros:
+
+```bash
+sudo docker compose exec postgres psql -U conecta -d conecta_service -c 'SELECT "idTipoUsuario", "nomeTipo" FROM "TipoUsuario" ORDER BY "nomeTipo";'
+```
+
+Devem existir os três tipos, sem repetição. Os IDs podem não ser consecutivos.
+Se o seed falhar, confira a disponibilidade do banco, `DATABASE_URL`,
+as migrations aplicadas e a geração do Prisma Client. Não compartilhe credenciais.
 
 ## Executar a API
 
@@ -235,6 +295,7 @@ npm run start:dev
 Mantenha esse terminal aberto.
 
 A API valida a configuração e confirma a conexão com o banco antes
+
 de aceitar requisições.
 
 Endereços locais padrão:
@@ -245,6 +306,19 @@ Endereços locais padrão:
 - OpenAPI JSON: http://localhost:3000/docs-json
 
 O Swagger depende de SWAGGER_ENABLED=true.
+
+### Executar a versão compilada
+
+Com o banco iniciado e o Prisma Client gerado:
+
+```bash
+npm run build
+npm run start:prod
+```
+
+O script `start:prod` utiliza `node dist/src/main.js`, conforme a saída
+compilada validada neste projeto. Encerre a execução em desenvolvimento
+antes de iniciar outra instância na mesma porta.
 
 ## Endpoints disponíveis
 
@@ -282,10 +356,13 @@ Falha na consulta — HTTP 503:
 ```
 
 As respostas possuem Cache-Control: no-store e não incluem
+
 credenciais ou detalhes internos do erro.
 
 A resposta 503 permite identificar falhas depois que a API iniciou.
+
 Se o banco estiver indisponível durante a inicialização, a API
+
 encerra sem começar a atender requisições.
 
 ## Testes e build
@@ -315,9 +392,11 @@ npx vitest run --config vitest.config.mts test/health.vitest.ts
 ```
 
 A suíte inclui testes que usam o PostgreSQL real. Utilize um ambiente
+
 local de desenvolvimento, nunca um banco de produção.
 
 Os testes de restrições criam registros em transações desfeitas
+
 com ROLLBACK. Os contadores de IDs podem avançar mesmo após o rollback.
 
 ## Estrutura principal
@@ -326,8 +405,11 @@ com ROLLBACK. Os contadores de IDs podem avançar mesmo após o rollback.
 backend/
 ├── prisma/
 │   ├── migrations/
-│   └── schema.prisma
+│   ├── schema.prisma
+│   └── seed.ts
 ├── src/
+│   ├── common/
+│   │   └── filters/
 │   ├── config/
 │   ├── database/
 │   ├── generated/
@@ -345,6 +427,7 @@ backend/
 ```
 
 O cliente em src/generated/prisma é gerado pelo comando
+
 prisma generate e não deve ser editado manualmente.
 
 ## Banco de dados atual
@@ -368,10 +451,12 @@ Restrições implementadas:
 - Nome, email, senhaHash e status da conta obrigatórios.
 
 O campo senhaHash ainda não é preenchido por um fluxo de cadastro.
+
 A implementação do hash com Argon2 será feita na etapa de autenticação.
 
-Os papéis CONTRATANTE, PRESTADOR e ADMINISTRADOR existem no enum,
-mas ainda não há um seed para inserir os registros em TipoUsuario.
+Os papéis CONTRATANTE, PRESTADOR e ADMINISTRADOR existem no enum.
+O script `prisma/seed.ts` prepara os registros correspondentes em `TipoUsuario`.
+Sua presença no banco deve ser confirmada pela consulta da seção de seed.
 
 ### Decisões técnicas em relação ao SQL original
 
@@ -381,12 +466,15 @@ mas ainda não há um seed para inserir os registros em TipoUsuario.
 - Papéis são limitados por enum, mantendo a tabela TipoUsuario.
 - StatusConta possui ATIVA e INATIVA.
 - StatusPerfil possui ATIVO e INATIVO como proposta técnica:
+
   a documentação não enumera os estados do vínculo.
+
 - Telefone, CPF, foto, cidade e estado continuam opcionais.
 - CPF não possui restrição de unicidade nesta etapa.
 - A unicidade atual de email não normaliza maiúsculas e minúsculas.
 
 As regras de transição de status e o fluxo de exclusão de conta
+
 ainda serão definidos antes da implementação dessas funcionalidades.
 
 ## Acesso pelo pgAdmin
@@ -404,6 +492,7 @@ Para o pgAdmin instalado diretamente no computador:
 Se você personalizou o usuário ou o banco no .env, utilize esses valores.
 
 Alterar POSTGRES_PASSWORD no .env não altera a senha de um banco
+
 já inicializado em um volume existente.
 
 Não crie tabelas manualmente pelo pgAdmin; utilize migrations.
@@ -431,6 +520,7 @@ sudo docker compose down
 ```
 
 Não acrescente -v se quiser preservar os dados.
+
 Essa opção remove os volumes do projeto.
 
 ## Problemas comuns
@@ -442,16 +532,19 @@ Entre na pasta backend antes de executar comandos npm.
 ### npx solicita instalar outra versão do Prisma
 
 Cancele a instalação e confira se você está dentro de backend
+
 e se executou npm ci.
 
 ### Prisma apresenta P1001
 
 Confira se o PostgreSQL está iniciado e se DATABASE_URL utiliza
+
 a porta 5433.
 
 ### curl não consegue conectar à porta 3000
 
 Confira o terminal da API. O processo pode estar parado ou ter
+
 falhado na inicialização.
 
 ### /docs retorna 404
@@ -467,3 +560,29 @@ sudo docker compose logs --tail=60 postgres
 ```
 
 Não compartilhe o .env nem URLs contendo senhas ao pedir ajuda.
+
+## Versionamento
+
+Versione o código-fonte, `package.json`, `package-lock.json`, `.env.example`,
+`compose.yaml`, `prisma.config.ts`, `prisma/schema.prisma`, `prisma/seed.ts`
+e a pasta `prisma/migrations`, incluindo `migration_lock.toml`.
+
+O `.gitignore` da raiz exclui dependências, arquivos gerados e credenciais:
+
+- `node_modules/`
+- `dist/`
+- `coverage/`
+- `*.tsbuildinfo`
+- `*.log`
+- `.env` e suas variantes, preservando `.env.example`
+- `backend/src/generated/prisma/`
+
+Após uma nova instalação, use `npm ci` e `npx prisma generate` para
+recriar as dependências e o cliente gerado.
+
+## Próxima etapa
+
+Validar o seed e definir os campos e regras de cadastro conforme RF01 e RF02,
+incluindo confirmação de senha, hash com Argon2 e associação ao perfil inicial.
+As decisões sobre campos obrigatórios e status iniciais devem ser documentadas
+antes da implementação do endpoint de cadastro.
