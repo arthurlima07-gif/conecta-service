@@ -4,7 +4,9 @@ import { JwtModule } from '@nestjs/jwt';
 
 import { PrismaModule } from '../../database/prisma.module';
 import { AuthController } from './auth.controller';
+import { LoginController } from './login.controller';
 import { AccessTokenService } from './services/access-token.service';
+import { LoginService } from './services/login.service';
 import { PasswordService } from './services/password.service';
 import { RegisterService } from './services/register.service';
 import { ValidateCredentialsService } from './services/validate-credentials.service';
@@ -33,12 +35,16 @@ import { ValidateCredentialsService } from './services/validate-credentials.serv
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [
+    AuthController,
+    LoginController,
+  ],
   providers: [
     PasswordService,
     RegisterService,
     ValidateCredentialsService,
     AccessTokenService,
+    LoginService,
   ],
 })
 export class AuthModule {}
