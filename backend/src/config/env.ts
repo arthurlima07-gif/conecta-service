@@ -34,7 +34,22 @@ const envSchema = z.object({
     .transform((value) => value === 'true'),
 
   DATABASE_URL: databaseUrlSchema,
+
   CORS_ORIGINS: corsOriginsSchema,
+
+  JWT_SECRET: z
+    .string()
+    .regex(
+      /^[a-fA-F0-9]{64}$/,
+      'Informe um segredo aleatório de 32 bytes em hexadecimal.',
+    ),
+
+  JWT_EXPIRES_IN_SECONDS: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(900)
+    .default(900),
 });
 
 export function validateEnv(input: Record<string, unknown>) {
